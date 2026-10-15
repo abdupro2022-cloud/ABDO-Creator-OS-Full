@@ -1,0 +1,32 @@
+# docker-compose.yml for local / single-host deploy.
+# The container reads APP_KEK and JWT_SECRET from the environment or a .env file.
+# Persistent SQLite data lives in the named volume.
+
+services:
+  app:
+    build: .
+    image: abdo-creator-os:latest
+    container_name: abdo-creator-os
+    restart: unless-stopped
+    ports:
+      - "4000:4000"
+    environment:
+      NODE_ENV: production
+      PORT: 4000
+      DATABASE_FILE: /var/data/abdo.sqlite
+      # Provide these at deploy time — do NOT commit real values.
+      APP_KEK: ${APP_KEK}
+      JWT_SECRET: ${JWT_SECRET}
+      # Optional research provider keys
+      RESEARCH_TAVILY_KEY: ${RESEARCH_TAVILY_KEY:-}
+      RESEARCH_SERPAPI_KEY: ${RESEARCH_SERPAPI_KEY:-}
+    volumes:
+      - abdo-data:/var/data
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:4000/api/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+volumes:
+  abdo-data:

@@ -1,0 +1,37 @@
+# Render Blueprint — single-service deploy of ABDO Creator OS.
+# Connect this repo at https://dashboard.render.com and click "New Blueprint".
+# Render will read this file and provision the service automatically.
+
+services:
+  - type: web
+    name: abdo-creator-os
+    runtime: node
+    plan: starter
+    region: oregon
+    branch: main
+    buildCommand: npm install && npm run build:shared && npm run build:server && npm run build:client
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: APP_KEK
+        generateValue: true   # Render auto-generates a 32-byte hex secret
+      - key: JWT_SECRET
+        generateValue: true   # Render auto-generates a 32-byte hex secret
+      - key: DATABASE_FILE
+        value: /var/data/abdo.sqlite
+      - key: PORT
+        value: "10000"
+      - key: WORKFLOW_TIMEOUT_MS
+        value: "60000"
+      # Optional — leave blank to disable. To enable, set a real key.
+      - key: RESEARCH_TAVILY_KEY
+        sync: false
+      - key: RESEARCH_SERPAPI_KEY
+        sync: false
+    disk:
+      name: abdo-data
+      mountPath: /var/data
+      sizeGB: 1
